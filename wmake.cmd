@@ -1,3 +1,2 @@
-del tyebook-base.exe
-cc main.c -o tyebook-base.exe
-
+del tyebook.exe
+cc tyebook.c -o tyebook.exe
