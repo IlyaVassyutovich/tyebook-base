@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
 
 	int tmp = 0;
 
-	int WIDTH, HEIGHT;
+	int WIDTH, HEIGHT, OVERLAP, FRAME;
 
 	char *BUFFER;
 	char *START;
@@ -34,6 +34,8 @@ int main(int argc, char const *argv[]) {
 
  	WIDTH = atoi(argv[2]);
  	HEIGHT = atoi(argv[3]);
+ 	OVERLAP = atoi(argv[4]);
+ 	FRAME = WIDTH*HEIGHT;
 
  	if (WIDTH+1 > sizeof line) {
  		printf("ERROR: Maximum width supported is 1024px\n");
@@ -58,7 +60,7 @@ int main(int argc, char const *argv[]) {
 	START = BUFFER;
 	
 
-	for (PAGE=2; PAGE<=4; PAGE++) {
+	for (PAGE=1; PAGE<=20; PAGE++) {
 
 		printf("PAGE: %04d\n", PAGE);
 
@@ -69,11 +71,21 @@ int main(int argc, char const *argv[]) {
 
 		fp = popen(STAGE1, "rb");
 
-		while ( (tmp = fread(START, WIDTH, 1, fp)) > 0 ) {
+		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
 
+			if (BUFSIZE % (FRAME) == 0) {
+				// got full page - reset buffer and parse
+				BUFSIZE=0;
+
+				// for debug
+				tmp = sprintf(STAGE2, "temp\\tezt%04d.raw", lcntr++);
+				fp2 = fopen(STAGE2, "wb");
+				fwrite(BUFFER, FRAME, 1, fp2);		
+				fclose(fp2);
+
+			}
 			BUFFER = realloc(BUFFER, BUFSIZE+=WIDTH);
 			START = BUFFER+BUFSIZE-WIDTH;
-
 		}
 
 		pclose(fp);
@@ -81,11 +93,13 @@ int main(int argc, char const *argv[]) {
 	}
 
 
+	// for debug
+
 	BUFFER = realloc(BUFFER, BUFSIZE-=WIDTH);
-	fp2 = fopen("temp\\tezt.raw", "wb");
+	fp2 = fopen("temp\\teztLLLL.raw", "wb");
 	fwrite(BUFFER, BUFSIZE, 1, fp2);		
 	fclose(fp2);
-	tmp = getchar();	
+//	tmp = getchar();
 	
 	return 0;
 
