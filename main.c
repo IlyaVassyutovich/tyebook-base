@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define PREFIX "wutils\\"
+#define TEMPDIR "temp\\"
+
 
 int main(int argc, char const *argv[]) {
 
@@ -38,7 +41,7 @@ int main(int argc, char const *argv[]) {
 	ROTATE = atoi(argv[5]);
 	DEPTH = atoi(argv[6]);
 
-	tmp = sprintf(COMMAND, "wutils\\pdfinfo.exe \"%s\"", argv[1]);
+	tmp = sprintf(COMMAND, "%spdfinfo \"%s\"", PREFIX, argv[1]);
 	fp = popen(COMMAND, "r");
 
 	while (fgets(line, sizeof line, fp)) {
@@ -58,8 +61,7 @@ int main(int argc, char const *argv[]) {
 
 		printf("PAGE: %04d\n", PAGE);
 
-		tmp = sprintf(COMMAND, "wutils\\pdftoppm -gray -r 300 -f %d -l %d \"%s\" | wutils\\convert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PAGE, PAGE, argv[1]);
-
+		tmp = sprintf(COMMAND, "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PREFIX, PAGE, PAGE, argv[1], PREFIX);
 		fp = popen(COMMAND, "rb");
 
 		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
@@ -67,13 +69,13 @@ int main(int argc, char const *argv[]) {
 			if (BUFSIZE == FRAME) {
 
 				// for debug
-				tmp = sprintf(COMMAND, "temp\\tezt%04d.raw", lcntr++);
+				tmp = sprintf(COMMAND, "%stezt%04d.raw", TEMPDIR, lcntr++);
 				fp2 = fopen(COMMAND, "wb");
 				fwrite(BUFFER, FRAME, 1, fp2);		
 				fclose(fp2);
 				// end debug
 
-				tmp = sprintf(COMMAND, "wutils\\convert gray:- -size %dx%d -depth 8 -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"temp\\temp%04d.pdf\"", WIDTH, HEIGHT, ROTATE, DEPTH, PAGE);
+				tmp = sprintf(COMMAND, "%sconvert gray:- -size %dx%d -depth 8 -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stemp%04d.pdf\"", PREFIX, WIDTH, HEIGHT, ROTATE, DEPTH, TEMPDIR, PAGE);
 				//printf("%s", COMMAND);
 
 				// copy overlapping data from buffer end
@@ -95,7 +97,8 @@ int main(int argc, char const *argv[]) {
 	BUFFER = realloc(BUFFER, BUFSIZE-=WIDTH);
 
 	// for debug
-	fp2 = fopen("temp\\teztLLLL.raw", "wb");
+	tmp = sprintf(COMMAND, "%steztLLLL.raw", TEMPDIR);
+	fp2 = fopen(COMMAND, "wb");
 	fwrite(BUFFER, BUFSIZE, 1, fp2);		
 	fclose(fp2);
 	// end debug
