@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 
-
 #define WINDOWS
 //#define LINUX
 
@@ -22,13 +21,7 @@
 #endif
 
 
-
 int main(int argc, char const *argv[]) {
-
-	// char line[1024];
-	// FILE *fp2;
-	// char *found;
-	// int lcntr = 0;
 
 	int page, pages, slide = 0;
 	int width, height, overlap, frame, rotate, depth;
@@ -82,19 +75,12 @@ int main(int argc, char const *argv[]) {
 
 			if (bufsize == frame) {
 
-				// // for debug
-				// temp = sprintf(string, "%stezt%04d.raw", TEMPDIR, lcntr++);
-				// fp2 = fopen(string, "wb");
-				// fwrite(buffer, frame, 1, fp2);		
-				// fclose(fp2);
-				// // end debug
-
 				temp = sprintf(string, "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stemp%04d.pdf\"", PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
 				inbuf = popen(string, WB);
 				fwrite(buffer, frame, 1, inbuf);
 				pclose(inbuf);
 
-				// copy overlapping data from buffer end
+				// move overlapping data from buffer end
 				memmove(buffer, buffer+frame-overlap, overlap);
 				bufsize=overlap;			
 
@@ -107,15 +93,11 @@ int main(int argc, char const *argv[]) {
 
 	}
 
-	// delete last buffer line (garbage)
-	buffer = realloc(buffer, bufsize-=width);
-
-	// // for debug
-	// temp = sprintf(string, "%steztLLLL.raw", TEMPDIR);
-	// fp2 = fopen(string, "wb");
-	// fwrite(buffer, bufsize, 1, fp2);		
-	// fclose(fp2);
-	// // end debug
+	// last frame
+	temp = sprintf(string, "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stempLAST.pdf\"", PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+	inbuf = popen(string, WB);
+	fwrite(buffer, bufsize-width, 1, inbuf);
+	pclose(inbuf);
 	
 	return 0;
 
