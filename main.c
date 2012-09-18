@@ -2,9 +2,18 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define PREFIX "wutils\\"
-#define TEMPDIR "temp\\"
+//#define WINDOWS
+#define LINUX
 
+#ifdef WINDOWS
+	#define PREFIX "wutils\\"
+	#define TEMPDIR "temp\\"
+#endif
+
+#ifdef LINUX
+	#define PREFIX ""
+	#define TEMPDIR "temp/"
+#endif
 
 int main(int argc, char const *argv[]) {
 
@@ -62,7 +71,14 @@ int main(int argc, char const *argv[]) {
 		printf("PAGE: %04d\n", PAGE);
 
 		tmp = sprintf(COMMAND, "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PREFIX, PAGE, PAGE, argv[1], PREFIX);
-		fp = popen(COMMAND, "rb");
+		
+		#ifdef WINDOWS
+			fp = popen(COMMAND, "rb");
+		#endif
+
+		#ifdef LINUX
+			fp = popen(COMMAND, "r");
+		#endif
 
 		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
 
