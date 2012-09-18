@@ -14,12 +14,11 @@ int main(int argc, char const *argv[]) {
 
 	int PAGE, PAGES = 0;
 
-	char STAGE1[2048];
-	char STAGE2[2048];
+	char COMMAND[2048];
 
 	int tmp = 0;
 
-	int WIDTH, HEIGHT, OVERLAP, FRAME;
+	int WIDTH, HEIGHT, OVERLAP, FRAME, ROTATE, DEPTH;
 
 	char *BUFFER;
 	char *START;
@@ -36,9 +35,11 @@ int main(int argc, char const *argv[]) {
  	HEIGHT = atoi(argv[3]);
  	OVERLAP = atoi(argv[4])*WIDTH;
  	FRAME = WIDTH*HEIGHT;
+	ROTATE = atoi(argv[5]);
+	DEPTH = atoi(argv[6]);
 
-
-	fp = popen("wutils\\pdfinfo.exe temp\\simpler.pdf", "r");
+	tmp = sprintf(COMMAND, "wutils\\pdfinfo.exe \"%s\"", argv[1]);
+	fp = popen(COMMAND, "r");
 
 	while (fgets(line, sizeof line, fp)) {
 		// printf("%s", line);
@@ -55,26 +56,27 @@ int main(int argc, char const *argv[]) {
 	BUFFER = malloc(BUFSIZE);
 	START = BUFFER;
 
-	for (PAGE=2; PAGE<=4; PAGE++) {
+	for (PAGE=1; PAGE<=PAGES; PAGE++) {
 
 		printf("PAGE: %04d\n", PAGE);
 
-		tmp = sprintf(STAGE1, "wutils\\pdftoppm -gray -r 300 -f %d -l %d \"%s\" | wutils\\convert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PAGE, PAGE, argv[1]);
+		tmp = sprintf(COMMAND, "wutils\\pdftoppm -gray -r 300 -f %d -l %d \"%s\" | wutils\\convert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PAGE, PAGE, argv[1]);
 
-		fp = popen(STAGE1, "rb");
+		fp = popen(COMMAND, "rb");
 
 		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
 
 			if (BUFSIZE % FRAME == 0) {
 
 				// for debug
-				tmp = sprintf(STAGE2, "temp\\tezt%04d.raw", lcntr++);
-				fp2 = fopen(STAGE2, "wb");
+				tmp = sprintf(COMMAND, "temp\\tezt%04d.raw", lcntr++);
+				fp2 = fopen(COMMAND, "wb");
 				fwrite(BUFFER, FRAME, 1, fp2);		
 				fclose(fp2);
 				// end debug
 
-				// tmp = sprintf(STAGE2, "wutils\\convert -size %sx%s -depth 8 \"temp%04d.gray\" -rotate -90 +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 \"temp\\temp%04d.pdf\"", argv[2], argv[3], PAGE, PAGE);				
+				tmp = sprintf(COMMAND, "wutils\\convert gray:- -size %dx%d -depth 8 -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"temp\\temp%04d.pdf\"", WIDTH, HEIGHT, ROTATE, DEPTH, PAGE);
+				//printf("%s", COMMAND);
 
 				// copy overlapping data from buffer end
 				memmove(BUFFER, BUFFER+FRAME-OVERLAP, OVERLAP-WIDTH);
