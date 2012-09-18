@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
 
 	char *BUFFER;
 	char *START;
-	char *END;
+	size_t BUFSIZE;
 
 	int lcntr = 0;
    
@@ -33,7 +33,7 @@ int main(int argc, char const *argv[]) {
 	}
 
  	WIDTH = atoi(argv[2]);
- 	HEIGHT = atoi(argv[2]);
+ 	HEIGHT = atoi(argv[3]);
 
  	if (WIDTH+1 > sizeof line) {
  		printf("ERROR: Maximum width supported is 1024px\n");
@@ -53,10 +53,12 @@ int main(int argc, char const *argv[]) {
 	}
 	pclose(fp);
 
+	BUFSIZE = WIDTH;
+	BUFFER = malloc(BUFSIZE);
 	START = BUFFER;
-	END = BUFFER;
+	
 
-	for (PAGE=2; PAGE<=2; PAGE++) {
+	for (PAGE=2; PAGE<=4; PAGE++) {
 
 		printf("PAGE: %04d\n", PAGE);
 
@@ -66,20 +68,24 @@ int main(int argc, char const *argv[]) {
 		tmp = sprintf(STAGE1, "wutils\\pdftoppm -gray -r 300 -f %d -l %d \"%s\" | wutils\\convert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PAGE, PAGE, argv[1]);
 
 		fp = popen(STAGE1, "rb");
-		fp2 = fopen("temp\\tezt.raw", "wb");
 
-		while ( (tmp = fread(line, WIDTH, 1, fp)) > 0 ) {
-			printf("%d\n", ++lcntr);
-			
-			fwrite(line, WIDTH, 1, fp2);
+		while ( (tmp = fread(START, WIDTH, 1, fp)) > 0 ) {
+
+			BUFFER = realloc(BUFFER, BUFSIZE+=WIDTH);
+			START = BUFFER+BUFSIZE-WIDTH;
 
 		}
 
 		pclose(fp);
-		fclose(fp2);
-
 
 	}
+
+
+	BUFFER = realloc(BUFFER, BUFSIZE-=WIDTH);
+	fp2 = fopen("temp\\tezt.raw", "wb");
+	fwrite(BUFFER, BUFSIZE, 1, fp2);		
+	fclose(fp2);
+	tmp = getchar();	
 	
 	return 0;
 
