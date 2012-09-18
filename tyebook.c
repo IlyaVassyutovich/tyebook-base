@@ -3,17 +3,17 @@
 #include <stdlib.h>
 
 
-#define WINDOWS
-//#define LINUX
+#define WIN
+//#define NIX
 
-#ifdef WINDOWS
+#ifdef WIN
 	#define PREFIX "wutils\\"
 	#define TEMPDIR "temp\\"
 	#define RB "rb"
 	#define WB "wb"
 #endif
 
-#ifdef LINUX
+#ifdef NIX
 	#define PREFIX ""
 	#define TEMPDIR "temp/"
 	#define RB "r"
