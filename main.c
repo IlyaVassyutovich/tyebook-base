@@ -21,16 +21,26 @@
 #endif
 
 
+#define STAGE1 "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 \
+               -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-"
+
+#define STAGE2 "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
+               -compress Zip -quality 100 \"%stemp%04d.pdf\""
+
+#define STAGEL "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
+               -compress Zip -quality 100 \"%stempLAST.pdf\""
+
+
 int main(int argc, char const *argv[]) {
 
 	int page, pages, slide = 0;
 	int width, height, overlap, frame, rotate, depth;
+	
+	char string[2048];	
+	int temp = 0;
 
 	FILE *outbuf;
-	FILE *inbuf;
-	char string[2048];	
-
-	int temp = 0;
+	FILE *inbuf;	
 
 	char *buffer;
 	char *start;
@@ -68,14 +78,14 @@ int main(int argc, char const *argv[]) {
 
 		printf("page: %04d\n", page);
 
-		temp = sprintf(string, "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PREFIX, page, page, argv[1], PREFIX);
+		temp = sprintf(string, STAGE1, PREFIX, page, page, argv[1], PREFIX);
 		outbuf = popen(string, RB);
 
 		while ((temp = fread(start, width, 1, outbuf)) > 0) {
 
 			if (bufsize == frame) {
 
-				temp = sprintf(string, "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stemp%04d.pdf\"", PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+				temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
 				inbuf = popen(string, WB);
 				fwrite(buffer, frame, 1, inbuf);
 				pclose(inbuf);
@@ -94,7 +104,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// last frame
-	temp = sprintf(string, "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stempLAST.pdf\"", PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+	temp = sprintf(string, STAGEL, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
 	inbuf = popen(string, WB);
 	fwrite(buffer, bufsize-width, 1, inbuf);
 	pclose(inbuf);
