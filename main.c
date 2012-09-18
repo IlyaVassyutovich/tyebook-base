@@ -6,7 +6,9 @@
 int main(int argc, char const *argv[]) {
 
 	FILE *fp;
-	char line[1025];
+	char line[1024];
+
+	FILE *fp2;
 
 	char *found;
 
@@ -19,6 +21,11 @@ int main(int argc, char const *argv[]) {
 
 	int WIDTH, HEIGHT;
 
+	char *BUFFER;
+	char *START;
+	char *END;
+
+	int lcntr = 0;
    
 	if (argc < 7) {
 		printf("Usage: tyebook-base FILENAME WIDTH HEIGHT OVERLAP ROTATE DEPTH\n");
@@ -46,8 +53,10 @@ int main(int argc, char const *argv[]) {
 	}
 	pclose(fp);
 
+	START = BUFFER;
+	END = BUFFER;
 
-	for (PAGE=1; PAGE<=1; PAGE++) {
+	for (PAGE=2; PAGE<=2; PAGE++) {
 
 		printf("PAGE: %04d\n", PAGE);
 
@@ -56,16 +65,18 @@ int main(int argc, char const *argv[]) {
 
 		tmp = sprintf(STAGE1, "wutils\\pdftoppm -gray -r 300 -f %d -l %d \"%s\" | wutils\\convert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PAGE, PAGE, argv[1]);
 
-		// printf("%s\n", STAGE1);
-		// printf("%s\n\n\n", STAGE2);
+		fp = popen(STAGE1, "rb");
+		fp2 = fopen("temp\\tezt.raw", "wb");
 
-		fp = popen(STAGE1, "r");
+		while ( (tmp = fread(line, WIDTH, 1, fp)) > 0 ) {
+			printf("%d\n", ++lcntr);
+			
+			fwrite(line, WIDTH, 1, fp2);
 
-		while (fgets(line, WIDTH, fp)) {
-			//printf("%s", line);
 		}
 
 		pclose(fp);
+		fclose(fp2);
 
 
 	}
