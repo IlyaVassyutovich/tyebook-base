@@ -52,9 +52,7 @@ int main(int argc, char const *argv[]) {
 	}
 	pclose(fp);
 
-	BUFSIZE = WIDTH;
-	BUFFER = malloc(BUFSIZE);
-	START = BUFFER;
+	START = BUFFER = malloc(BUFSIZE = WIDTH);
 
 	for (PAGE=1; PAGE<=PAGES; PAGE++) {
 
@@ -66,7 +64,7 @@ int main(int argc, char const *argv[]) {
 
 		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
 
-			if (BUFSIZE % FRAME == 0) {
+			if (BUFSIZE == FRAME) {
 
 				// for debug
 				tmp = sprintf(COMMAND, "temp\\tezt%04d.raw", lcntr++);
