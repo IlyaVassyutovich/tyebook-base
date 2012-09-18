@@ -2,122 +2,120 @@
 #include <string.h>
 #include <stdlib.h>
 
-//#define WINDOWS
-#define LINUX
+
+
+#define WINDOWS
+//#define LINUX
 
 #ifdef WINDOWS
 	#define PREFIX "wutils\\"
 	#define TEMPDIR "temp\\"
+	#define RB "rb"
+	#define WB "wb"
 #endif
 
 #ifdef LINUX
 	#define PREFIX ""
 	#define TEMPDIR "temp/"
+	#define RB "r"
+	#define WB "w"
 #endif
+
+
 
 int main(int argc, char const *argv[]) {
 
-	FILE *fp;
-	char line[1024];
+	// char line[1024];
+	// FILE *fp2;
+	// char *found;
+	// int lcntr = 0;
 
-	FILE *fp2;
+	int page, pages, slide = 0;
+	int width, height, overlap, frame, rotate, depth;
 
-	char *found;
+	FILE *outbuf;
+	FILE *inbuf;
+	char string[2048];	
 
-	int PAGE, PAGES = 0;
+	int temp = 0;
 
-	char COMMAND[2048];
+	char *buffer;
+	char *start;
+	long bufsize;
 
-	int tmp = 0;
-
-	int WIDTH, HEIGHT, OVERLAP, FRAME, ROTATE, DEPTH;
-
-	char *BUFFER;
-	char *START;
-	size_t BUFSIZE;
-
-	int lcntr = 0;
    
 	if (argc < 7) {
-		printf("Usage: tyebook-base FILENAME WIDTH HEIGHT OVERLAP ROTATE DEPTH\n");
+		printf("Usage: tyebook-base filename width height overlap rotate depth\n");
 		return 0;
 	}
 
- 	WIDTH = atoi(argv[2]);
- 	HEIGHT = atoi(argv[3]);
- 	OVERLAP = atoi(argv[4])*WIDTH;
- 	FRAME = WIDTH*HEIGHT;
-	ROTATE = atoi(argv[5]);
-	DEPTH = atoi(argv[6]);
+ 	width = atoi(argv[2]);
+ 	height = atoi(argv[3]);
+ 	overlap = atoi(argv[4])*width;
+ 	frame = width*height;
+	rotate = atoi(argv[5]);
+	depth = atoi(argv[6]);
 
-	tmp = sprintf(COMMAND, "%spdfinfo \"%s\"", PREFIX, argv[1]);
-	fp = popen(COMMAND, "r");
 
-	while (fgets(line, sizeof line, fp)) {
-		// printf("%s", line);
+	temp = sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
+	outbuf = popen(string, "r");
 
-		if (found = strstr(line, "Pages:")) {
-			PAGES = atoi(found+16);
-			printf("PAGES = %d\n", PAGES);
+	while (fgets(string, sizeof string, outbuf)) {
+		if (start = strstr(string, "Pages:")) {
+			pages = atoi(start+16);
+			printf("pages = %d\n", pages);
 		}
-
 	}
-	pclose(fp);
+	pclose(outbuf);
 
-	START = BUFFER = malloc(BUFSIZE = WIDTH);
 
-	for (PAGE=1; PAGE<=PAGES; PAGE++) {
+	start = buffer = malloc(bufsize = width);
 
-		printf("PAGE: %04d\n", PAGE);
+	for (page=1; page<=pages; page++) {
 
-		tmp = sprintf(COMMAND, "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PREFIX, PAGE, PAGE, argv[1], PREFIX);
-		
-		#ifdef WINDOWS
-			fp = popen(COMMAND, "rb");
-		#endif
+		printf("page: %04d\n", page);
 
-		#ifdef LINUX
-			fp = popen(COMMAND, "r");
-		#endif
+		temp = sprintf(string, "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize 800 -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-", PREFIX, page, page, argv[1], PREFIX);
+		outbuf = popen(string, RB);
 
-		while ((tmp = fread(START, WIDTH, 1, fp)) > 0) {
+		while ((temp = fread(start, width, 1, outbuf)) > 0) {
 
-			if (BUFSIZE == FRAME) {
+			if (bufsize == frame) {
 
-				// for debug
-				tmp = sprintf(COMMAND, "%stezt%04d.raw", TEMPDIR, lcntr++);
-				fp2 = fopen(COMMAND, "wb");
-				fwrite(BUFFER, FRAME, 1, fp2);		
-				fclose(fp2);
-				// end debug
+				// // for debug
+				// temp = sprintf(string, "%stezt%04d.raw", TEMPDIR, lcntr++);
+				// fp2 = fopen(string, "wb");
+				// fwrite(buffer, frame, 1, fp2);		
+				// fclose(fp2);
+				// // end debug
 
-				tmp = sprintf(COMMAND, "%sconvert gray:- -size %dx%d -depth 8 -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stemp%04d.pdf\"", PREFIX, WIDTH, HEIGHT, ROTATE, DEPTH, TEMPDIR, PAGE);
-				//printf("%s", COMMAND);
+				temp = sprintf(string, "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d -compress Zip -quality 100 \"%stemp%04d.pdf\"", PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+				inbuf = popen(string, WB);
+				fwrite(buffer, frame, 1, inbuf);
+				pclose(inbuf);
 
 				// copy overlapping data from buffer end
-				memmove(BUFFER, BUFFER+FRAME-OVERLAP, OVERLAP-WIDTH);
-				// black line
-				memset(BUFFER+OVERLAP-WIDTH, 0, WIDTH);
-				BUFSIZE=OVERLAP;				
+				memmove(buffer, buffer+frame-overlap, overlap);
+				bufsize=overlap;			
 
 			}
-			BUFFER = realloc(BUFFER, BUFSIZE+=WIDTH);
-			START = BUFFER+BUFSIZE-WIDTH;
+			buffer = realloc(buffer, bufsize+=width);
+			start = buffer+bufsize-width;
 		}
 
-		pclose(fp);
+		pclose(outbuf);
 
 	}
 
 	// delete last buffer line (garbage)
-	BUFFER = realloc(BUFFER, BUFSIZE-=WIDTH);
+	buffer = realloc(buffer, bufsize-=width);
 
-	// for debug
-	tmp = sprintf(COMMAND, "%steztLLLL.raw", TEMPDIR);
-	fp2 = fopen(COMMAND, "wb");
-	fwrite(BUFFER, BUFSIZE, 1, fp2);		
-	fclose(fp2);
-	// end debug
+	// // for debug
+	// temp = sprintf(string, "%steztLLLL.raw", TEMPDIR);
+	// fp2 = fopen(string, "wb");
+	// fwrite(buffer, bufsize, 1, fp2);		
+	// fclose(fp2);
+	// // end debug
 	
 	return 0;
 
