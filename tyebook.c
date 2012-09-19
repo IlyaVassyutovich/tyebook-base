@@ -63,6 +63,7 @@
                -quality 100 " TEMPDIR "tune-ZZZZ.pdf"
 
 
+
 int main(int argc, char const *argv[]) {
 
 	int page, pages, slide = 0;
@@ -81,7 +82,7 @@ int main(int argc, char const *argv[]) {
 	int i,j;
 
 
-	if (!strcmp(argv[1], "tune")) {
+	if ((argc == 4) && (!strcmp(argv[1], "tune"))) {
 
 		printf("\ngenerating...\n");
 
@@ -130,8 +131,8 @@ int main(int argc, char const *argv[]) {
 
 
 	if (argc != 6) {
-		printf("\nUsage: tyebook-base filename width height overlap rotate(R|L)\n");
-		printf("   or: tyebook-base tune width height\n");
+		printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
+		printf("   or: tyebook tune width height\n");
 		return 0;
 	}
 
