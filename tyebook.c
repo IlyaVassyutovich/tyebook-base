@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
 
 	char *buffer;
 	char *start;
-	long bufsize;
+	long bufsize = 0;
 
    
 	if (argc < 7) {
@@ -69,9 +69,9 @@ int main(int argc, char const *argv[]) {
 	pclose(outbuf);
 
 
-	start = buffer = malloc(bufsize = width);
+	start = buffer = malloc(frame);
 
-	for (page=1; page<=pages; page++) {
+	for (page=1; page<=4; page++) {
 
 		printf("page: %04d\n", page);
 
@@ -92,8 +92,8 @@ int main(int argc, char const *argv[]) {
 				bufsize=overlap;			
 
 			}
-			buffer = realloc(buffer, bufsize+=width);
-			start = buffer+bufsize-width;
+			start = buffer+bufsize;
+			bufsize+=width;
 		}
 
 		pclose(outbuf);
