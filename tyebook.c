@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 
-#define WIN
-//#define NIX
+//#define WIN
+#define NIX
 
 #ifdef WIN
 	#define PREFIX "wutils\\"
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[]) {
 
 	start = buffer = malloc(frame);
 
-	for (page=1; page<=4; page++) {
+	for (page=1; page<=pages; page++) {
 
 		printf("page: %04d\n", page);
 
