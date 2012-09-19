@@ -31,15 +31,19 @@
 	#define DEVNUL "nul"
 	#define RB "rb"
 	#define WB "wb"
+ 	#define FONT "\"Courier New\""
 #else
 	#define PREFIX ""
 	#define TEMPDIR "temp/"
 	#define RM "rm"
 	#define DEVNUL "/dev/null"
 	#define RB "r"
-	#define WB "w" 
+	#define WB "w"
+	#define FONT "\"courier\""
 #endif
 
+// TODO - TEMPDIRS INTO DEFINES
+// TODO - REMOVE depth - default 4
 
 #define STAGE1 "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize %d \
                -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNUL
@@ -51,6 +55,14 @@
 
 #define TUNE1  "%sconvert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 \
                -compress Zip -quality 100 %stune.pgm 2>" DEVNUL
+
+#define TUNE2  "%sconvert %stune.pgm -crop 100x%d+0+0 -fill black -pointsize 20 -annotate +30+400 %d \
+               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-V%04d.pdf"
+
+#define TUNE3  "%sconvert %stune.pgm -crop %dx100+0+0 -fill black -pointsize 20 -annotate +280+50 %d \
+               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-H%04d.pdf"
+
+#define TUNE4  "%sconvert %stune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-ZZZZ.pdf"
 
 
 int main(int argc, char const *argv[]) {
@@ -72,13 +84,12 @@ int main(int argc, char const *argv[]) {
 
 
 	if (!strcmp(argv[1], "tune")) {
+
 		printf("\ngenerating...\n");
 
 		width = atoi(argv[2]);
 		height = atoi(argv[3]);
 		frame = width*height;
-
-		printf("%d\n", frame);
 
 		buffer = malloc(frame);
 
@@ -95,6 +106,25 @@ int main(int argc, char const *argv[]) {
 		setbuf(inbuf, NULL);
 		fwrite(buffer, frame, 1, inbuf);
 		pclose(inbuf);
+
+		printf("vertical\n");
+
+		for (i=width-50; i<=width; i++) {
+			sprintf(string, TUNE2, PREFIX, TEMPDIR, i, i, TEMPDIR, i);
+			system(string);
+		}
+
+		printf("horizontal\n");
+
+		for (i=height-50; i<=height; i++) {
+			sprintf(string, TUNE3, PREFIX, TEMPDIR, i, i, TEMPDIR, i);
+			system(string);
+		}
+
+		sprintf(string, TUNE4, PREFIX, TEMPDIR, TEMPDIR);
+		system(string);
+
+		// TODO - concat & delete
 
 		printf("done!\n");
 		return 0;
