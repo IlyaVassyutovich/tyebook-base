@@ -62,6 +62,9 @@
 #define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip \
                -quality 100 " TEMPDIR "tune-ZZZZ.pdf"
 
+#define TUNE5  PREFIX "pdftk " TEMPDIR "tune-ZZZZ.pdf " TEMPDIR "tune*.pdf cat output tune-%d-%d.pdf && \
+               " RM " " TEMPDIR "tune*.*"
+
 
 
 int main(int argc, char const *argv[]) {
@@ -70,7 +73,6 @@ int main(int argc, char const *argv[]) {
 	int width, height, overlap, frame, rotate;
 	
 	char string[2048];
-	int temp = 0;
 
 	FILE *outbuf;
 	FILE *inbuf;
@@ -79,10 +81,10 @@ int main(int argc, char const *argv[]) {
 	char *start;
 	long bufsize = 0;
 
-	int i,j;
+	int i,j,px = 0;
 
 
-	if ((argc == 4) && (!strcmp(argv[1], "tune"))) {
+	if ((argc == 5) && (!strcmp(argv[1], "tune"))) {
 
 		printf("\ngenerating...\n");
 
@@ -90,13 +92,15 @@ int main(int argc, char const *argv[]) {
 		height = atoi(argv[3]);
 		frame = width*height;
 
+		overlap = atoi(argv[4]);
+
 		buffer = malloc(frame);
 
 		for (i=0; i<width; i++) {
-			temp = i % 2;
+			px = i % 2;
 			for (j=0; j<height; j++) {
-				temp = !temp;
-				buffer[i*height+j] = temp*255;
+				px = !px;
+				buffer[i*height+j] = px*255;
 			}
 		}
 
@@ -106,16 +110,16 @@ int main(int argc, char const *argv[]) {
 		fwrite(buffer, frame, 1, inbuf);
 		pclose(inbuf);
 
-		printf("vertical\n");
+		printf("vertical...\n");
 
-		for (i=width-50; i<=width; i++) {
+		for (i=width-overlap+1; i<=width; i++) {
 			sprintf(string, TUNE2, i, i, i);
 			system(string);
 		}
 
-		printf("horizontal\n");
+		printf("horizontal...\n");
 
-		for (i=height-50; i<=height; i++) {
+		for (i=height-overlap+1; i<=height; i++) {
 			sprintf(string, TUNE3, i, i, i);
 			system(string);
 		}
@@ -123,7 +127,8 @@ int main(int argc, char const *argv[]) {
 		sprintf(string, TUNE4);
 		system(string);
 
-		// TODO - concat & delete
+		sprintf(string, TUNE5, width, height);
+		system(string);
 
 		printf("done!\n");
 		return 0;
@@ -132,7 +137,7 @@ int main(int argc, char const *argv[]) {
 
 	if (argc != 6) {
 		printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
-		printf("   or: tyebook tune width height\n");
+		printf("   or: tyebook tune width height steps\n");
 		return 0;
 	}
 
@@ -144,7 +149,7 @@ int main(int argc, char const *argv[]) {
 	rotate = argv[5][0]=='R' ? 90 : -90;
 
 
-	temp = sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
+	sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
 	outbuf = popen(string, "r");
 
 	while (fgets(string, sizeof string, outbuf)) {
@@ -164,14 +169,14 @@ int main(int argc, char const *argv[]) {
 
 		printf("page: %4d\n", page);
 
-		temp = sprintf(string, STAGE1, page, page, argv[1], width);
+		sprintf(string, STAGE1, page, page, argv[1], width);
 		outbuf = popen(string, RB);
 
-		while ((temp = fread(start, width, 1, outbuf)) > 0) {
+		while (fread(start, width, 1, outbuf) > 0) {
 
 			if (bufsize == frame) {
 
-				temp = sprintf(string, STAGE2, width, height, rotate, ++slide);
+				sprintf(string, STAGE2, width, height, rotate, ++slide);
 				inbuf = popen(string, WB);
 				setbuf(inbuf, NULL);
 				fwrite(buffer, bufsize, 1, inbuf);
@@ -191,7 +196,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// last frame
-	temp = sprintf(string, STAGE2, width, height, rotate, ++slide);
+	sprintf(string, STAGE2, width, height, rotate, ++slide);
 	inbuf = popen(string, WB);
 	setbuf(inbuf, NULL);
 	fwrite(buffer, bufsize-width, 1, inbuf);
@@ -199,7 +204,7 @@ int main(int argc, char const *argv[]) {
 	
 	printf("finishing...\n");
 
-	temp = sprintf(string, STAGE3, argv[1]);
+	sprintf(string, STAGE3, argv[1]);
 	system(string);
 
 	printf("done!\n");
