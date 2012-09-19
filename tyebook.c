@@ -49,6 +49,9 @@
 
 #define STAGE3 "%spdftk %stemp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " %stemp*.pdf"
 
+#define TUNE1  "%sconvert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 \
+               -compress Zip -quality 100 %stune.pgm 2>" DEVNUL
+
 
 int main(int argc, char const *argv[]) {
 
@@ -64,6 +67,38 @@ int main(int argc, char const *argv[]) {
 	char *buffer;
 	char *start;
 	long bufsize = 0;
+
+	int i,j;
+
+
+	if (!strcmp(argv[1], "tune")) {
+		printf("\ngenerating...\n");
+
+		width = atoi(argv[2]);
+		height = atoi(argv[3]);
+		frame = width*height;
+
+		printf("%d\n", frame);
+
+		buffer = malloc(frame);
+
+		for (i=0; i<width; i++) {
+			temp = i % 2;
+			for (j=0; j<height; j++) {
+				temp = !temp;
+				buffer[i*height+j] = temp*255;
+			}
+		}
+
+		sprintf(string, TUNE1, PREFIX, height, width, TEMPDIR);
+		inbuf = popen(string, WB);
+		setbuf(inbuf, NULL);
+		fwrite(buffer, frame, 1, inbuf);
+		pclose(inbuf);
+
+		printf("done!\n");
+		return 0;
+	}
 
 
 	if (argc < 7) {
