@@ -29,11 +29,15 @@
 	#define TEMPDIR "temp\\"
 	#define RM "del"
 	#define DEVNUL "nul"
+	#define RB "rb"
+	#define WB "wb"
 #else
 	#define PREFIX ""
 	#define TEMPDIR "temp/"
 	#define RM "rm"
 	#define DEVNUL "/dev/null"
+	#define RB "r"
+	#define WB "w" 
 #endif
 
 
@@ -91,29 +95,21 @@ int main(int argc, char const *argv[]) {
 
 	start = buffer = malloc(frame);
 
-	for (page=1; page<=5; page++) {
+	for (page=1; page<=pages; page++) {
 
 		printf("page: %4d\n", page);
 
 		temp = sprintf(string, STAGE1, PREFIX, page, page, argv[1], PREFIX, width);
-		#ifdef __MINGW32__
-		outbuf = popen(string, "rb");
-		#else
-		outbuf = popen(string, "r");
-		#endif
+		outbuf = popen(string, RB);
 
 		while ((temp = fread(start, width, 1, outbuf)) > 0) {
 
 			if (bufsize == frame) {
 
 				temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
-				#ifdef __MINGW32__
-				inbuf = popen(string, "wb");
-				fwrite(buffer, width, height+1, inbuf);
-				#else
-				inbuf = popen(string, "w");
-				fwrite(buffer, width, height, inbuf);
-				#endif
+				inbuf = popen(string, WB);
+				setbuf(inbuf, NULL);
+				fwrite(buffer, bufsize, 1, inbuf);
 				pclose(inbuf);
 
 				// move overlapping data from buffer end
@@ -131,13 +127,9 @@ int main(int argc, char const *argv[]) {
 
 	// last frame
 	temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
-	#ifdef __MINGW32__
-	inbuf = popen(string, "wb");
-	fwrite(buffer, bufsize, 1, inbuf);
-	#else
-	inbuf = popen(string, "w");
+	inbuf = popen(string, WB);
+	setbuf(inbuf, NULL);
 	fwrite(buffer, bufsize-width, 1, inbuf);
-	#endif	
 	pclose(inbuf);
 	
 	printf("finishing...\n");
