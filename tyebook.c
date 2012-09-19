@@ -27,9 +27,6 @@
 #define STAGE2 "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
                -compress Zip -quality 100 \"%stemp%04d.pdf\""
 
-#define STAGEL "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
-               -compress Zip -quality 100 \"%stempLAST.pdf\""
-
 
 int main(int argc, char const *argv[]) {
 
@@ -104,7 +101,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// last frame
-	temp = sprintf(string, STAGEL, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+	temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
 	inbuf = popen(string, WB);
 	fwrite(buffer, bufsize-width, 1, inbuf);
 	pclose(inbuf);
