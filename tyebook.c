@@ -29,16 +29,18 @@
 
 #ifdef WIN
 	#define PREFIX "wutils\\"
-	#define TEMPDIR "temp\\"
+	#define TEMPDIR "\"temp\"\\"
 	#define RB "rb"
 	#define WB "wb"
+ 	#define RM "del"
 #endif
 
 #ifdef NIX
 	#define PREFIX ""
-	#define TEMPDIR "temp/"
+	#define TEMPDIR "\"temp\"/"
 	#define RB "r"
 	#define WB "w"
+ 	#define RM "rm"
 #endif
 
 
@@ -46,7 +48,9 @@
                -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:-"
 
 #define STAGE2 "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
-               -compress Zip -quality 100 \"%stemp%04d.pdf\""
+               -compress Zip -quality 100 %stemp%04d.pdf"
+
+#define STAGE3 "%spdftk %stemp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " %stemp*.pdf"
 
 
 int main(int argc, char const *argv[]) {
@@ -90,11 +94,13 @@ int main(int argc, char const *argv[]) {
 	pclose(outbuf);
 
 
+	printf("starting...\n");
+
 	start = buffer = malloc(frame);
 
 	for (page=1; page<=pages; page++) {
 
-		printf("page: %04d\n", page);
+		printf("page: %4d\n", page);
 
 		temp = sprintf(string, STAGE1, PREFIX, page, page, argv[1], PREFIX);
 		outbuf = popen(string, RB);
@@ -127,6 +133,13 @@ int main(int argc, char const *argv[]) {
 	fwrite(buffer, bufsize-width, 1, inbuf);
 	pclose(inbuf);
 	
+	printf("finishing...\n");
+
+	temp = sprintf(string, STAGE3, PREFIX, TEMPDIR, argv[1], TEMPDIR);
+	system(string);
+
+	printf("done!\n");
+
 	return 0;
 
 }
