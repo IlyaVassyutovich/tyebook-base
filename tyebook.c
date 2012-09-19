@@ -28,47 +28,45 @@
 	#define PREFIX "wutils\\"
 	#define TEMPDIR "temp\\"
 	#define RM "del"
-	#define DEVNUL "nul"
+	#define DEVNULL "nul"
 	#define RB "rb"
 	#define WB "wb"
- 	#define FONT "\"Courier New\""
 #else
 	#define PREFIX ""
 	#define TEMPDIR "temp/"
 	#define RM "rm"
-	#define DEVNUL "/dev/null"
+	#define DEVNULL "/dev/null"
 	#define RB "r"
 	#define WB "w"
-	#define FONT "\"courier\""
 #endif
 
-// TODO - TEMPDIRS INTO DEFINES
-// TODO - REMOVE depth - default 4
 
-#define STAGE1 "%spdftoppm -gray -r 300 -f %d -l %d \"%s\" | %sconvert - -fuzz 1%% -trim +repage -resize %d \
-               -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNUL
+#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" | " PREFIX "convert - -fuzz 1%% -trim +repage \
+               -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 \
+               gray:- 2>" DEVNULL
 
-#define STAGE2 "%sconvert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth %d \
-               -compress Zip -quality 100 %stemp%04d.pdf 2>" DEVNUL
+#define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth 4 \
+               -compress Zip -quality 100 " TEMPDIR "temp%04d.pdf 2>" DEVNULL
 
-#define STAGE3 "%spdftk %stemp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " %stemp*.pdf"
+#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
 
-#define TUNE1  "%sconvert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 \
-               -compress Zip -quality 100 %stune.pgm 2>" DEVNUL
+#define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 \
+               -compress Zip -quality 100 " TEMPDIR "tune.pgm"
 
-#define TUNE2  "%sconvert %stune.pgm -crop 100x%d+0+0 -fill black -pointsize 20 -annotate +30+400 %d \
-               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-V%04d.pdf"
+#define TUNE2  PREFIX "convert " TEMPDIR "tune.pgm -crop 100x%d+0+0 -fill black -pointsize 20 -annotate +30+400 %d \
+               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-V%04d.pdf"
 
-#define TUNE3  "%sconvert %stune.pgm -crop %dx100+0+0 -fill black -pointsize 20 -annotate +280+50 %d \
-               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-H%04d.pdf"
+#define TUNE3  PREFIX "convert " TEMPDIR "tune.pgm -crop %dx100+0+0 -fill black -pointsize 20 -annotate +280+50 %d \
+               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-H%04d.pdf"
 
-#define TUNE4  "%sconvert %stune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 %stune-ZZZZ.pdf"
+#define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip \
+               -quality 100 " TEMPDIR "tune-ZZZZ.pdf"
 
 
 int main(int argc, char const *argv[]) {
 
 	int page, pages, slide = 0;
-	int width, height, overlap, frame, rotate, depth;
+	int width, height, overlap, frame, rotate;
 	
 	char string[2048];
 	int temp = 0;
@@ -101,7 +99,7 @@ int main(int argc, char const *argv[]) {
 			}
 		}
 
-		sprintf(string, TUNE1, PREFIX, height, width, TEMPDIR);
+		sprintf(string, TUNE1, height, width);
 		inbuf = popen(string, WB);
 		setbuf(inbuf, NULL);
 		fwrite(buffer, frame, 1, inbuf);
@@ -110,18 +108,18 @@ int main(int argc, char const *argv[]) {
 		printf("vertical\n");
 
 		for (i=width-50; i<=width; i++) {
-			sprintf(string, TUNE2, PREFIX, TEMPDIR, i, i, TEMPDIR, i);
+			sprintf(string, TUNE2, i, i, i);
 			system(string);
 		}
 
 		printf("horizontal\n");
 
 		for (i=height-50; i<=height; i++) {
-			sprintf(string, TUNE3, PREFIX, TEMPDIR, i, i, TEMPDIR, i);
+			sprintf(string, TUNE3, i, i, i);
 			system(string);
 		}
 
-		sprintf(string, TUNE4, PREFIX, TEMPDIR, TEMPDIR);
+		sprintf(string, TUNE4);
 		system(string);
 
 		// TODO - concat & delete
@@ -131,17 +129,18 @@ int main(int argc, char const *argv[]) {
 	}
 
 
-	if (argc < 7) {
-		printf("Usage: tyebook-base filename width height overlap rotate depth\n");
+	if (argc != 6) {
+		printf("\nUsage: tyebook-base filename width height overlap rotate(R|L)\n");
+		printf("   or: tyebook-base tune width height\n");
 		return 0;
 	}
 
 	width = atoi(argv[2]);
 	height = atoi(argv[3]);
-	overlap = atoi(argv[4])*width;
 	frame = width*height;
-	rotate = atoi(argv[5]);
-	depth = atoi(argv[6]);
+
+	overlap = atoi(argv[4])*width;
+	rotate = argv[5][0]=='R' ? 90 : -90;
 
 
 	temp = sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
@@ -164,14 +163,14 @@ int main(int argc, char const *argv[]) {
 
 		printf("page: %4d\n", page);
 
-		temp = sprintf(string, STAGE1, PREFIX, page, page, argv[1], PREFIX, width);
+		temp = sprintf(string, STAGE1, page, page, argv[1], width);
 		outbuf = popen(string, RB);
 
 		while ((temp = fread(start, width, 1, outbuf)) > 0) {
 
 			if (bufsize == frame) {
 
-				temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+				temp = sprintf(string, STAGE2, width, height, rotate, ++slide);
 				inbuf = popen(string, WB);
 				setbuf(inbuf, NULL);
 				fwrite(buffer, bufsize, 1, inbuf);
@@ -191,7 +190,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// last frame
-	temp = sprintf(string, STAGE2, PREFIX, width, height, rotate, depth, TEMPDIR, ++slide);
+	temp = sprintf(string, STAGE2, width, height, rotate, ++slide);
 	inbuf = popen(string, WB);
 	setbuf(inbuf, NULL);
 	fwrite(buffer, bufsize-width, 1, inbuf);
@@ -199,7 +198,7 @@ int main(int argc, char const *argv[]) {
 	
 	printf("finishing...\n");
 
-	temp = sprintf(string, STAGE3, PREFIX, TEMPDIR, argv[1], TEMPDIR);
+	temp = sprintf(string, STAGE3, argv[1]);
 	system(string);
 
 	printf("done!\n");
