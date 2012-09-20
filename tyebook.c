@@ -94,7 +94,8 @@ int main(int argc, char const *argv[]) {
 
 		overlap = atoi(argv[4]);
 
-		buffer = malloc(frame);
+		buffer = malloc(frame+1);
+		buffer[frame] = 0;
 
 		for (i=0; i<width; i++) {
 			px = i % 2;
@@ -107,7 +108,7 @@ int main(int argc, char const *argv[]) {
 		sprintf(string, TUNE1, height, width);
 		inbuf = popen(string, WB);
 		setbuf(inbuf, NULL);
-		fwrite(buffer, frame, 1, inbuf);
+		fwrite(buffer, 1, frame+1, inbuf);
 		pclose(inbuf);
 
 		printf("vertical...\n");
@@ -163,7 +164,8 @@ int main(int argc, char const *argv[]) {
 
 	printf("starting...\n");
 
-	start = buffer = malloc(frame);
+	start = buffer = malloc(frame+1);
+	buffer[frame] = 0;
 
 	for (page=1; page<=pages; page++) {
 
@@ -179,7 +181,7 @@ int main(int argc, char const *argv[]) {
 				sprintf(string, STAGE2, width, height, rotate, ++slide);
 				inbuf = popen(string, WB);
 				setbuf(inbuf, NULL);
-				fwrite(buffer, bufsize, 1, inbuf);
+				fwrite(buffer, 1, frame+1, inbuf);
 				pclose(inbuf);
 
 				// move overlapping data from buffer end
@@ -199,7 +201,8 @@ int main(int argc, char const *argv[]) {
 	sprintf(string, STAGE2, width, height, rotate, ++slide);
 	inbuf = popen(string, WB);
 	setbuf(inbuf, NULL);
-	fwrite(buffer, bufsize-width, 1, inbuf);
+	buffer[bufsize-width] = 0;
+	fwrite(buffer, 1, bufsize-width+1, inbuf);
 	pclose(inbuf);
 	
 	printf("finishing...\n");
