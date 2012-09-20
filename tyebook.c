@@ -1,20 +1,23 @@
 /*
  * Copyright (c) 2012, Dmitry Egorov <mail@degorov.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  */
 
@@ -41,29 +44,38 @@
 #endif
 
 
-#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" | " PREFIX "convert - -fuzz 1%% -trim +repage \
-               -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 \
-               gray:- 2>" DEVNULL
+#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" | " \
+               PREFIX "convert - -fuzz 1%% -trim +repage -resize %d \
+               -bordercolor white -border 0x10 -bordercolor black -border 0x5 \
+               -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
-#define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth 4 \
-               -compress Zip -quality 100 " TEMPDIR "temp%04d.pdf 2>" DEVNULL
+#define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage \
+               -strip -type GrayScale -depth 4 -compress Zip -quality 100 " \
+               TEMPDIR "temp%04d.pdf 2>" DEVNULL
 
-#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
+#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \
+               \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
 
-#define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 \
-               -compress Zip -quality 100 " TEMPDIR "tune.pgm"
+#define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip \
+               -type GrayScale -depth 4 -compress Zip -quality 100 " \
+               TEMPDIR "tune.pgm"
 
-#define TUNE2  PREFIX "convert " TEMPDIR "tune.pgm -crop 100x%d+0+0 -fill black -pointsize 20 -annotate +30+400 %d \
-               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-V%04d.pdf"
+#define TUNE2  PREFIX "convert " TEMPDIR "tune.pgm -crop 100x%d+0+0 \
+               -fill black -pointsize 20 -annotate +30+400 %d +repage -strip \
+               -type GrayScale -depth 4 -compress Zip -quality 100 " \
+               TEMPDIR "tune-V%04d.pdf"
 
-#define TUNE3  PREFIX "convert " TEMPDIR "tune.pgm -crop %dx100+0+0 -fill black -pointsize 20 -annotate +280+50 %d \
-               +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-H%04d.pdf"
+#define TUNE3  PREFIX "convert " TEMPDIR "tune.pgm -crop %dx100+0+0 \
+               -fill black -pointsize 20 -annotate +280+50 %d +repage -strip \
+               -type GrayScale -depth 4 -compress Zip -quality 100 " \
+               TEMPDIR "tune-H%04d.pdf"
 
-#define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip \
-               -quality 100 " TEMPDIR "tune-ZZZZ.pdf"
+#define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip \
+               -type GrayScale -depth 4 -compress Zip -quality 100 " \
+               TEMPDIR "tune-ZZZZ.pdf"
 
-#define TUNE5  PREFIX "pdftk " TEMPDIR "tune-ZZZZ.pdf " TEMPDIR "tune*.pdf cat output tune-%d-%d.pdf && \
-               " RM " " TEMPDIR "tune*.*"
+#define TUNE5  PREFIX "pdftk " TEMPDIR "tune-ZZZZ.pdf " TEMPDIR "tune*.pdf \
+               cat output tune-%d-%d.pdf && " RM " " TEMPDIR "tune*.*"
 
 
 
@@ -71,7 +83,7 @@ int main(int argc, char const *argv[]) {
 
 	int page, pages, slide = 0;
 	int width, height, overlap, frame, rotate;
-	
+
 	char string[2048];
 
 	FILE *outbuf;
@@ -204,7 +216,7 @@ int main(int argc, char const *argv[]) {
 	buffer[bufsize-width] = 0;
 	fwrite(buffer, 1, bufsize-width+1, inbuf);
 	pclose(inbuf);
-	
+
 	printf("finishing...\n");
 
 	sprintf(string, STAGE3, argv[1]);
