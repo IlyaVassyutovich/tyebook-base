@@ -28,19 +28,19 @@
 
 
 #ifdef __MINGW32__
-	#define PREFIX "wutils\\"
-	#define TEMPDIR "temp\\"
-	#define RM "del"
-	#define DEVNULL "nul"
-	#define RB "rb"
-	#define WB "wb"
+    #define PREFIX "wutils\\"
+    #define TEMPDIR "temp\\"
+    #define RM "del"
+    #define DEVNULL "nul"
+    #define RB "rb"
+    #define WB "wb"
 #else
-	#define PREFIX ""
-	#define TEMPDIR "temp/"
-	#define RM "rm"
-	#define DEVNULL "/dev/null"
-	#define RB "r"
-	#define WB "w"
+    #define PREFIX ""
+    #define TEMPDIR "temp/"
+    #define RM "rm"
+    #define DEVNULL "/dev/null"
+    #define RB "r"
+    #define WB "w"
 #endif
 
 
@@ -81,149 +81,149 @@
 
 int main(int argc, char const *argv[]) {
 
-	int page, pages, slide = 0;
-	int width, height, overlap, frame, rotate;
+    int page, pages, slide = 0;
+    int width, height, overlap, frame, rotate;
 
-	char string[2048];
+    char string[2048];
 
-	FILE *outbuf;
-	FILE *inbuf;
+    FILE *outbuf;
+    FILE *inbuf;
 
-	char *buffer;
-	char *start;
-	long bufsize = 0;
+    char *buffer;
+    char *start;
+    long bufsize = 0;
 
-	int i,j,px = 0;
-
-
-	if ((argc == 5) && (!strcmp(argv[1], "tune"))) {
-
-		printf("\ngenerating...\n");
-
-		width = atoi(argv[2]);
-		height = atoi(argv[3]);
-		frame = width*height;
-
-		overlap = atoi(argv[4]);
-
-		buffer = malloc(frame+1);
-		buffer[frame] = 0;
-
-		for (i=0; i<width; i++) {
-			px = i % 2;
-			for (j=0; j<height; j++) {
-				px = !px;
-				buffer[i*height+j] = px*255;
-			}
-		}
-
-		sprintf(string, TUNE1, height, width);
-		inbuf = popen(string, WB);
-		setbuf(inbuf, NULL);
-		fwrite(buffer, 1, frame+1, inbuf);
-		pclose(inbuf);
-
-		printf("vertical...\n");
-
-		for (i=width-overlap+1; i<=width; i++) {
-			sprintf(string, TUNE2, i, i, i);
-			system(string);
-		}
-
-		printf("horizontal...\n");
-
-		for (i=height-overlap+1; i<=height; i++) {
-			sprintf(string, TUNE3, i, i, i);
-			system(string);
-		}
-
-		sprintf(string, TUNE4);
-		system(string);
-
-		sprintf(string, TUNE5, width, height);
-		system(string);
-
-		printf("done!\n");
-		return 0;
-	}
+    int i,j,px = 0;
 
 
-	if (argc != 6) {
-		printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
-		printf("   or: tyebook tune width height steps\n");
-		return 0;
-	}
+    if ((argc == 5) && (!strcmp(argv[1], "tune"))) {
 
-	width = atoi(argv[2]);
-	height = atoi(argv[3]);
-	frame = width*height;
+        printf("\ngenerating...\n");
 
-	overlap = atoi(argv[4])*width;
-	rotate = argv[5][0]=='R' ? 90 : -90;
+        width = atoi(argv[2]);
+        height = atoi(argv[3]);
+        frame = width*height;
+
+        overlap = atoi(argv[4]);
+
+        buffer = malloc(frame+1);
+        buffer[frame] = 0;
+
+        for (i=0; i<width; i++) {
+            px = i % 2;
+            for (j=0; j<height; j++) {
+                px = !px;
+                buffer[i*height+j] = px*255;
+            }
+        }
+
+        sprintf(string, TUNE1, height, width);
+        inbuf = popen(string, WB);
+        setbuf(inbuf, NULL);
+        fwrite(buffer, 1, frame+1, inbuf);
+        pclose(inbuf);
+
+        printf("vertical...\n");
+
+        for (i=width-overlap+1; i<=width; i++) {
+            sprintf(string, TUNE2, i, i, i);
+            system(string);
+        }
+
+        printf("horizontal...\n");
+
+        for (i=height-overlap+1; i<=height; i++) {
+            sprintf(string, TUNE3, i, i, i);
+            system(string);
+        }
+
+        sprintf(string, TUNE4);
+        system(string);
+
+        sprintf(string, TUNE5, width, height);
+        system(string);
+
+        printf("done!\n");
+        return 0;
+    }
 
 
-	sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
-	outbuf = popen(string, "r");
+    if (argc != 6) {
+        printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
+        printf("   or: tyebook tune width height steps\n");
+        return 0;
+    }
 
-	while (fgets(string, sizeof string, outbuf)) {
-		if (start = strstr(string, "Pages:")) {
-			pages = atoi(start+16);
-			printf("\npages = %d\n", pages);
-		}
-	}
-	pclose(outbuf);
+    width = atoi(argv[2]);
+    height = atoi(argv[3]);
+    frame = width*height;
+
+    overlap = atoi(argv[4])*width;
+    rotate = argv[5][0]=='R' ? 90 : -90;
 
 
-	printf("starting...\n");
+    sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
+    outbuf = popen(string, "r");
 
-	start = buffer = malloc(frame+1);
-	buffer[frame] = 0;
+    while (fgets(string, sizeof string, outbuf)) {
+        if (start = strstr(string, "Pages:")) {
+            pages = atoi(start+16);
+            printf("\npages = %d\n", pages);
+        }
+    }
+    pclose(outbuf);
 
-	for (page=1; page<=pages; page++) {
 
-		printf("page: %4d\n", page);
+    printf("starting...\n");
 
-		sprintf(string, STAGE1, page, page, argv[1], width);
-		outbuf = popen(string, RB);
+    start = buffer = malloc(frame+1);
+    buffer[frame] = 0;
 
-		while (fread(start, width, 1, outbuf) > 0) {
+    for (page=1; page<=pages; page++) {
 
-			if (bufsize == frame) {
+        printf("page: %4d\n", page);
 
-				sprintf(string, STAGE2, width, height, rotate, ++slide);
-				inbuf = popen(string, WB);
-				setbuf(inbuf, NULL);
-				fwrite(buffer, 1, frame+1, inbuf);
-				pclose(inbuf);
+        sprintf(string, STAGE1, page, page, argv[1], width);
+        outbuf = popen(string, RB);
 
-				// move overlapping data from buffer end
-				memmove(buffer, buffer+frame-overlap, overlap);
-				bufsize=overlap;
+        while (fread(start, width, 1, outbuf) > 0) {
 
-			}
-			start = buffer+bufsize;
-			bufsize+=width;
-		}
+            if (bufsize == frame) {
 
-		pclose(outbuf);
+                sprintf(string, STAGE2, width, height, rotate, ++slide);
+                inbuf = popen(string, WB);
+                setbuf(inbuf, NULL);
+                fwrite(buffer, 1, frame+1, inbuf);
+                pclose(inbuf);
 
-	}
+                // move overlapping data from buffer end
+                memmove(buffer, buffer+frame-overlap, overlap);
+                bufsize=overlap;
 
-	// last frame
-	sprintf(string, STAGE2, width, height, rotate, ++slide);
-	inbuf = popen(string, WB);
-	setbuf(inbuf, NULL);
-	buffer[bufsize-width] = 0;
-	fwrite(buffer, 1, bufsize-width+1, inbuf);
-	pclose(inbuf);
+            }
+            start = buffer+bufsize;
+            bufsize+=width;
+        }
 
-	printf("finishing...\n");
+        pclose(outbuf);
 
-	sprintf(string, STAGE3, argv[1]);
-	system(string);
+    }
 
-	printf("done!\n");
+    // last frame
+    sprintf(string, STAGE2, width, height, rotate, ++slide);
+    inbuf = popen(string, WB);
+    setbuf(inbuf, NULL);
+    buffer[bufsize-width] = 0;
+    fwrite(buffer, 1, bufsize-width+1, inbuf);
+    pclose(inbuf);
 
-	return 0;
+    printf("finishing...\n");
+
+    sprintf(string, STAGE3, argv[1]);
+    system(string);
+
+    printf("done!\n");
+
+    return 0;
 
 }
