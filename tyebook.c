@@ -44,8 +44,8 @@
 #endif
 
 
-#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" | " \
-               PREFIX "convert - -fuzz 1%% -trim +repage -resize %d \
+#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL \
+               " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d \
                -bordercolor white -border 0x10 -bordercolor black -border 0x5 \
                -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
