@@ -44,10 +44,15 @@
 #endif
 
 
-#define STAGE1 PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL \
-               " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d \
-               -bordercolor white -border 0x10 -bordercolor black -border 0x5 \
-               -type GrayScale -depth 8 gray:- 2>" DEVNULL
+#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" \
+                DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage \
+               -resize %d -bordercolor white -border 0x10 -bordercolor black \
+               -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
+
+#define STAGE1D PREFIX "ddjvu -format=pgm -scale=300 -page=%d \"%s\" 2>" \
+                DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage \
+               -resize %d -bordercolor white -border 0x10 -bordercolor black \
+               -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
 #define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage \
                -strip -type GrayScale -depth 4 -compress Zip -quality 100 " \
@@ -79,14 +84,12 @@
 
 
 
-const char *getfilextension(const char *fullfilename)
-{
+const char *getfilextension(const char *fullfilename) {
     int size, index;
     size = index = 0;
-    while (fullfilename[size] != '\0') {
-        if (fullfilename[size] == '.') {
+    while (fullfilename[size]) {
+        if (fullfilename[size] == '.')
             index = size;
-        }
         size++;
     }
     if(size && index) {
@@ -179,17 +182,19 @@ int main(int argc, char const *argv[]) {
     overlap = atoi(argv[4])*width;
     rotate = argv[5][0]=='R' ? 90 : -90;
 
-
-    if (!stricmp(getfilextension(argv[1]), ".pdf")) {
-        type = 1;
-    } else if (!stricmp(getfilextension(argv[1]), ".djvu")) {
-        type = 2;
-    } else {
-        printf("Error: only PDF and DJVU files are supprted\n");
+    // get file type
+    if  ((!strcmp(getfilextension(argv[1]), ".pdf")) ||
+         (!strcmp(getfilextension(argv[1]), ".PDF")))
+            type = 1;
+    else if ((!strcmp(getfilextension(argv[1]), ".djvu")) ||
+             (!strcmp(getfilextension(argv[1]), ".DJVU")))
+            type = 2;
+    else {
+        printf("Error: only PDF and DJVU files are supported\n");
         return 0;
     }
 
-
+    // get number of pages
     if (type == 1) {
         sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
         outbuf = popen(string, "r");
@@ -205,7 +210,7 @@ int main(int argc, char const *argv[]) {
     }
     pclose(outbuf);
 
-
+    // main processing
     printf("\npages = %d\n", pages);
     printf("starting...\n");
 
@@ -216,7 +221,11 @@ int main(int argc, char const *argv[]) {
 
         printf("page: %4d\n", page);
 
-        sprintf(string, STAGE1, page, page, argv[1], width);
+        if (type == 1)
+            sprintf(string, STAGE1P, page, page, argv[1], width);
+        else if (type == 2)
+            sprintf(string, STAGE1D, page, argv[1], width);
+
         outbuf = popen(string, RB);
 
         while (fread(start, width, 1, outbuf) > 0) {
