@@ -109,7 +109,7 @@ const char *getfilextension(const char *fullfilename) {
 
 int tune(int steps) {
 
-    int i,j,px = 0;
+    int i, j, px = 0;
 
     printf("\ngenerating...\n");
 
@@ -164,7 +164,8 @@ int main(int argc, char const *argv[]) {
     char *start;
     long bufsize = 0;
 
-    int type = 0; // 1 - pdf, 2 - djvu
+    // pdf=1 djvu=2
+    int type = 0;
 
     if (argc<5 || argc>6) {
         printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
@@ -180,22 +181,23 @@ int main(int argc, char const *argv[]) {
         }
     }
 
+    // starting
     overlap = atoi(argv[4])*width;
     rotate = argv[5][0]=='R' ? 90 : -90;
 
-    // get file type
-    if  ((!strcmp(getfilextension(argv[1]), ".pdf")) ||
-         (!strcmp(getfilextension(argv[1]), ".PDF")))
+    // getting file type
+    if  (!strcmp(getfilextension(argv[1]), ".pdf") ||
+         !strcmp(getfilextension(argv[1]), ".PDF"))
             type = 1;
-    else if ((!strcmp(getfilextension(argv[1]), ".djvu")) ||
-             (!strcmp(getfilextension(argv[1]), ".DJVU")))
+    else if (!strcmp(getfilextension(argv[1]), ".djvu") ||
+             !strcmp(getfilextension(argv[1]), ".DJVU"))
             type = 2;
     else {
         printf("Error: only PDF and DJVU files are supported\n");
         return 0;
     }
 
-    // get number of pages
+    // getting number of pages
     if (type == 1) {
         sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
         outbuf = popen(string, "r");
@@ -262,6 +264,7 @@ int main(int argc, char const *argv[]) {
 
     printf("finishing...\n");
 
+    // exporting result
     sprintf(string, STAGE3, argv[1]);
     system(string);
 
