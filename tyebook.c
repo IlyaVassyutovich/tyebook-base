@@ -79,9 +79,26 @@
 
 
 
+const char *getfilextension(const char *fullfilename)
+{
+    int size, index;
+    size = index = 0;
+    while (fullfilename[size] != '\0') {
+        if (fullfilename[size] == '.') {
+            index = size;
+        }
+        size++;
+    }
+    if(size && index) {
+        return fullfilename + index;
+    }
+    return NULL;
+}
+
+
 int main(int argc, char const *argv[]) {
 
-    int page, pages, slide = 0;
+    int page = 0, pages = 0, slide = 0;
     int width, height, overlap, frame, rotate;
 
     char string[2048];
@@ -95,6 +112,7 @@ int main(int argc, char const *argv[]) {
 
     int i,j,px = 0;
 
+    int type = 0; // 1 - pdf, 2 - djvu
 
     if ((argc == 5) && (!strcmp(argv[1], "tune"))) {
 
@@ -162,18 +180,33 @@ int main(int argc, char const *argv[]) {
     rotate = argv[5][0]=='R' ? 90 : -90;
 
 
-    sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
-    outbuf = popen(string, "r");
+    if (!stricmp(getfilextension(argv[1]), ".pdf")) {
+        type = 1;
+    } else if (!stricmp(getfilextension(argv[1]), ".djvu")) {
+        type = 2;
+    } else {
+        printf("Error: only PDF and DJVU files are supprted\n");
+        return 0;
+    }
 
-    while (fgets(string, sizeof string, outbuf)) {
-        if (start = strstr(string, "Pages:")) {
-            pages = atoi(start+16);
-            printf("\npages = %d\n", pages);
-        }
+
+    if (type == 1) {
+        sprintf(string, "%spdfinfo \"%s\"", PREFIX, argv[1]);
+        outbuf = popen(string, "r");
+        while (fgets(string, sizeof string, outbuf))
+            if (start = strstr(string, "Pages:"))
+                pages = atoi(start+16);
+    } else if (type == 2) {
+        sprintf(string, "%sdjvm -l \"%s\"", PREFIX, argv[1]);
+        outbuf = popen(string, "r");
+        while (fgets(string, sizeof string, outbuf))
+            if (strstr(string, "PAGE"))
+                pages+=1;
     }
     pclose(outbuf);
 
 
+    printf("\npages = %d\n", pages);
     printf("starting...\n");
 
     start = buffer = malloc(frame+1);
