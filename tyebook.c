@@ -84,6 +84,14 @@
 
 
 
+// globals
+int width, height, frame;
+char *buffer;
+char string[2048];
+FILE *outbuf, *inbuf;
+
+
+
 const char *getfilextension(const char *fullfilename) {
     int size, index;
     size = index = 0;
@@ -92,92 +100,85 @@ const char *getfilextension(const char *fullfilename) {
             index = size;
         size++;
     }
-    if(size && index) {
+    if(size && index)
         return fullfilename + index;
-    }
     return NULL;
 }
+
+
+
+int tune(int steps) {
+
+    int i,j,px = 0;
+
+    printf("\ngenerating...\n");
+
+    buffer = malloc(frame+1);
+    buffer[frame] = 0;
+
+    for (i=0; i<width; i++) {
+        px = i % 2;
+        for (j=0; j<height; j++) {
+            px = !px;
+            buffer[i*height+j] = px*255;
+        }
+    }
+
+    sprintf(string, TUNE1, height, width);
+    inbuf = popen(string, WB);
+    setbuf(inbuf, NULL);
+    fwrite(buffer, 1, frame+1, inbuf);
+    pclose(inbuf);
+
+    printf("vertical...\n");
+
+    for (i=width-steps+1; i<=width; i++) {
+        sprintf(string, TUNE2, i, i, i);
+        system(string);
+    }
+
+    printf("horizontal...\n");
+
+    for (i=height-steps+1; i<=height; i++) {
+        sprintf(string, TUNE3, i, i, i);
+        system(string);
+    }
+
+    sprintf(string, TUNE4);
+    system(string);
+
+    sprintf(string, TUNE5, width, height);
+    system(string);
+
+    printf("done!\n");
+    return 0;
+}
+
 
 
 int main(int argc, char const *argv[]) {
 
     int page = 0, pages = 0, slide = 0;
-    int width, height, overlap, frame, rotate;
+    int overlap, rotate;
 
-    char string[2048];
-
-    FILE *outbuf;
-    FILE *inbuf;
-
-    char *buffer;
     char *start;
     long bufsize = 0;
 
-    int i,j,px = 0;
-
     int type = 0; // 1 - pdf, 2 - djvu
 
-    if ((argc == 5) && (!strcmp(argv[1], "tune"))) {
-
-        printf("\ngenerating...\n");
-
-        width = atoi(argv[2]);
-        height = atoi(argv[3]);
-        frame = width*height;
-
-        overlap = atoi(argv[4]);
-
-        buffer = malloc(frame+1);
-        buffer[frame] = 0;
-
-        for (i=0; i<width; i++) {
-            px = i % 2;
-            for (j=0; j<height; j++) {
-                px = !px;
-                buffer[i*height+j] = px*255;
-            }
-        }
-
-        sprintf(string, TUNE1, height, width);
-        inbuf = popen(string, WB);
-        setbuf(inbuf, NULL);
-        fwrite(buffer, 1, frame+1, inbuf);
-        pclose(inbuf);
-
-        printf("vertical...\n");
-
-        for (i=width-overlap+1; i<=width; i++) {
-            sprintf(string, TUNE2, i, i, i);
-            system(string);
-        }
-
-        printf("horizontal...\n");
-
-        for (i=height-overlap+1; i<=height; i++) {
-            sprintf(string, TUNE3, i, i, i);
-            system(string);
-        }
-
-        sprintf(string, TUNE4);
-        system(string);
-
-        sprintf(string, TUNE5, width, height);
-        system(string);
-
-        printf("done!\n");
-        return 0;
-    }
-
-
-    if (argc != 6) {
+    if (argc<5 || argc>6) {
         printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
         printf("   or: tyebook tune width height steps\n");
         return 0;
+    } else {
+        width = atoi(argv[2]);
+        height = atoi(argv[3]);
+        frame = width*height;
+        if (argc == 5 && !strcmp(argv[1], "tune")) {
+            tune(atoi(argv[4]));
+            return 0;
+        }
     }
-
-    width = atoi(argv[2]);
-    height = atoi(argv[3]);
-    frame = width*height;
 
     overlap = atoi(argv[4])*width;
     rotate = argv[5][0]=='R' ? 90 : -90;
@@ -267,5 +268,4 @@ int main(int argc, char const *argv[]) {
     printf("done!\n");
 
     return 0;
-
 }
