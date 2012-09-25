@@ -168,7 +168,7 @@ int main(int argc, char const *argv[]) {
     int type = 0;
 
     if (argc<5 || argc>6) {
-        printf("\nUsage: tyebook filename width height overlap rotate(R|L)\n");
+        printf("\nUsage: tyebook filename width height overlap rotate(R|L|0)\n");
         printf("   or: tyebook tune width height steps\n");
         return 0;
     } else {
@@ -183,7 +183,13 @@ int main(int argc, char const *argv[]) {
 
     // starting
     overlap = atoi(argv[4])*width;
-    rotate = argv[5][0]=='R' ? 90 : -90;
+
+    if (argv[5][0]=='R')
+        rotate = 90;
+    else if (argv[5][0]=='L')
+        rotate = -90;
+    else
+        rotate =  0;
 
     // getting file type
     if  (!strcmp(getfilextension(argv[1]), ".pdf") ||
