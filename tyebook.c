@@ -44,43 +44,23 @@
 #endif
 
 
-#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" \
-                DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage \
-               -resize %d -bordercolor white -border 0x10 -bordercolor black \
-               -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
+#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
-#define STAGE1D PREFIX "ddjvu -format=pgm -scale=300 -page=%d \"%s\" 2>" \
-                DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage \
-               -resize %d -bordercolor white -border 0x10 -bordercolor black \
-               -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
+#define STAGE1D PREFIX "ddjvu -format=pgm -scale=300 -page=%d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
-#define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage \
-               -strip -type GrayScale -depth 4 -compress Zip -quality 100 " \
-               TEMPDIR "temp%04d.pdf 2>" DEVNULL
+#define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "temp%04d.pdf 2>" DEVNULL
 
-#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \
-               \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
+#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
 
-#define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip \
-               -type GrayScale -depth 4 -compress Zip -quality 100 " \
-               TEMPDIR "tune.pgm"
+#define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune.pgm"
 
-#define TUNE2  PREFIX "convert " TEMPDIR "tune.pgm -crop 100x%d+0+0 \
-               -fill black -pointsize 20 -annotate +30+400 %d +repage -strip \
-               -type GrayScale -depth 4 -compress Zip -quality 100 " \
-               TEMPDIR "tune-V%04d.pdf"
+#define TUNE2  PREFIX "convert " TEMPDIR "tune.pgm -crop 100x%d+0+0 -fill black -pointsize 20 -annotate +30+400 %d +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-V%04d.pdf"
 
-#define TUNE3  PREFIX "convert " TEMPDIR "tune.pgm -crop %dx100+0+0 \
-               -fill black -pointsize 20 -annotate +280+50 %d +repage -strip \
-               -type GrayScale -depth 4 -compress Zip -quality 100 " \
-               TEMPDIR "tune-H%04d.pdf"
+#define TUNE3  PREFIX "convert " TEMPDIR "tune.pgm -crop %dx100+0+0 -fill black -pointsize 20 -annotate +280+50 %d +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-H%04d.pdf"
 
-#define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip \
-               -type GrayScale -depth 4 -compress Zip -quality 100 " \
-               TEMPDIR "tune-ZZZZ.pdf"
+#define TUNE4  PREFIX "convert " TEMPDIR "tune.pgm +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune-ZZZZ.pdf"
 
-#define TUNE5  PREFIX "pdftk " TEMPDIR "tune-ZZZZ.pdf " TEMPDIR "tune*.pdf \
-               cat output tune-%d-%d.pdf && " RM " " TEMPDIR "tune*.*"
+#define TUNE5  PREFIX "pdftk " TEMPDIR "tune-ZZZZ.pdf " TEMPDIR "tune*.pdf cat output tune-%d-%d.pdf && " RM " " TEMPDIR "tune*.*"
 
 
 
@@ -189,7 +169,7 @@ int main(int argc, char const *argv[]) {
     else if (argv[5][0]=='L')
         rotate = -90;
     else
-        rotate =  0;
+        rotate = 0;
 
     // getting file type
     if  (!strcmp(getfilextension(argv[1]), ".pdf") ||
