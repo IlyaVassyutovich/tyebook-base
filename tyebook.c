@@ -44,7 +44,7 @@
 #endif
 
 
-#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
+#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -gamma 0.33 -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
 #define STAGE1D PREFIX "ddjvu -format=pgm -scale=300 -page=%d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
