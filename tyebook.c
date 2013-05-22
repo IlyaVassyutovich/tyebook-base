@@ -44,13 +44,13 @@
 #endif
 
 
-#define STAGE1P PREFIX "pdftoppm -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -gamma 0.33 -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
+#define STAGE1P PREFIX "pdftoppm -cropbox -gray -r 300 -f %d -l %d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -gamma 0.33 -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
 #define STAGE1D PREFIX "ddjvu -format=pgm -scale=300 -page=%d \"%s\" 2>" DEVNULL " | " PREFIX "convert - -fuzz 1%% -trim +repage -resize %d -bordercolor white -border 0x10 -bordercolor black -border 0x5 -type GrayScale -depth 8 gray:- 2>" DEVNULL
 
 #define STAGE2 PREFIX "convert -size %dx%d -depth 8 gray:- -rotate %d +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "temp%04d.pdf 2>" DEVNULL
 
-#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \"%s [TYeBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
+#define STAGE3 PREFIX "pdftk " TEMPDIR "temp*.pdf cat output \"%s [eBook].pdf\" && " RM " " TEMPDIR "temp*.pdf"
 
 #define TUNE1  PREFIX "convert -size %dx%d -depth 8 gray:- +repage -strip -type GrayScale -depth 4 -compress Zip -quality 100 " TEMPDIR "tune.pgm"
 
