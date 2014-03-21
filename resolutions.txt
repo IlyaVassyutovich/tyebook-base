@@ -1,0 +1,29 @@
+Cybook PDF                800   600   doubtful
+Digma e500                778   584
+Digma e601                730   592
+Effire ColorBook TR401    272   440
+G-Mini M6 PDF             778   584
+G-Mini M61P PDF           760   600
+HighScreen 605            771   571
+iRiver Cover Story        800   600   doubtful
+Kindle DXG               1135   783
+Kindle2 PDF               735   560
+Kindle3 & 5               560   735
+Kobo 1                    790   588
+Lbook v3                  584   760
+Lexand LT-115             480   692
+Orsio b731                600   768
+Pocketbook 301 plus       770   600
+Pocketbook 360 PDF        770   600
+Pocketbook 903            810  1180
+Qumo LIbro 2              778   584
+Sony PRS 300, PDF         583   755
+Sony PRS 600 PDF          584   754
+Sony PRS 505, PDF         584   754
+Sony PRS 650, PDF         800   566
+Nook WiFi                 800   600   doubtful
+Kindle touch              711   521
+Explay HD.book            760   448
+Kindle 4                  557   731
+iRiver Story HD          1024   768   doubtful
+PocketBook 611 Basic      772   600
