@@ -4,6 +4,7 @@ Digma e601                730   592
 Effire ColorBook TR401    272   440
 G-Mini M6 PDF             778   584
 G-Mini M61P PDF           760   600
+G-Mini P60 PDF            572   772 
 HighScreen 605            771   571
 iRiver Cover Story        800   600   doubtful
 Kindle DXG               1135   783
